@@ -1067,8 +1067,8 @@ fn link_linux(
     input_paths: &[&str],
     link_type: LinkType,
 ) -> io::Result<(Child, PathBuf)> {
-    let architecture = if target.architecture == Architecture::Arm {
-        "arm-linux-gnueabihf"
+    let architecture = if let Architecture::Arm(_) = target.architecture {
+        "arm-linux-gnueabihf".to_string()
     } else {
         format!("{}-linux-gnu", target.architecture)
     };
