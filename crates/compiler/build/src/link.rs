@@ -66,6 +66,7 @@ const PRECOMPILED_HOST_EXT: &str = "rh1"; // Short for "roc host version 1" (so 
 const WASM_TARGET_STR: &str = "wasm32";
 const LINUX_X86_64_TARGET_STR: &str = "linux-x86_64";
 const LINUX_ARM64_TARGET_STR: &str = "linux-arm64";
+const LINUX_ARM32_TARGET_STR: &str = "linux-arm32";
 const MACOS_ARM64_TARGET_STR: &str = "macos-arm64";
 const MACOS_X86_64_TARGET_STR: &str = "macos-x86_64";
 const WINDOWS_X86_64_TARGET_STR: &str = "windows-x86_64";
@@ -93,6 +94,11 @@ pub const fn preprocessed_host_filename(target: &Triple) -> Option<&'static str>
             architecture: Architecture::Aarch64(_),
             ..
         } => Some(concatcp!(LINUX_ARM64_TARGET_STR, '.', PRECOMPILED_HOST_EXT)),
+        Triple {
+            operating_system: OperatingSystem::Linux,
+            architecture: Architecture::Arm(_),
+            ..
+        } => Some(concatcp!(LINUX_ARM32_TARGET_STR, '.', PRECOMPILED_HOST_EXT)),
         Triple {
             operating_system: OperatingSystem::Darwin,
             architecture: Architecture::Aarch64(_),
@@ -1061,7 +1067,11 @@ fn link_linux(
     input_paths: &[&str],
     link_type: LinkType,
 ) -> io::Result<(Child, PathBuf)> {
-    let architecture = format!("{}-linux-gnu", target.architecture);
+    let architecture = if target.architecture == Architecture::Arm {
+        "arm-linux-gnueabihf"
+    } else {
+        format!("{}-linux-gnu", target.architecture)
+    };
 
     //    Command::new("cp")
     //        .args(&[input_paths[0], "/home/folkertdev/roc/wasm/host.o"])
@@ -1170,6 +1180,7 @@ fn link_linux(
             }
         }
         Architecture::Aarch64(_) => library_path(["/lib", "ld-linux-aarch64.so.1"]),
+        Architecture::Arm(_) => library_path(["/lib", "ld-linux-armhf.so.3"]),
         _ => internal_error!(
             "TODO gracefully handle unsupported linux architecture: {:?}",
             target.architecture
