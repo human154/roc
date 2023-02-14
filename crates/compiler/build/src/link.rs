@@ -390,11 +390,6 @@ pub fn build_zig_host_native(
         "str",
         zig_str_path,
         "--pkg-end",
-        // include the zig runtime
-        "--pkg-begin",
-        "compiler_rt",
-        zig_compiler_rt_path.to_str().unwrap(),
-        "--pkg-end",
         // include libc
         "--library",
         "c",
